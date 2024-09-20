@@ -13,12 +13,12 @@
   "scripts": {
     "build": "node build.js",
     "prepublishOnly": "npm run build",
-    "test": "jest"
+    "test": "vitest"
   },
   "type": "module",
   "devDependencies": {
-    "jest": "^29.7.0",
-    "esbuild": "^0.23.1"
+    "esbuild": "^0.23.1",
+    "vitest": "^2.1.1"
   },
   "dependencies": {
     "jsonwebtoken": "^9.0.0"

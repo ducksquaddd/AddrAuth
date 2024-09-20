@@ -4,10 +4,11 @@ import crypto from "crypto";
 class AddrAuth {
   /**
    * Constructor for AddrAuth class
-   * @param {Function} verifySignature - Function to verify signature
-   * @param {string} JWTSecret - Secret key for JWT
-   * @param {string} challengeExpiresIn - Expiration time for challenge JWT
-   * @param {string} JWTExpiresIn - Expiration time for authentication JWT
+   * @param {Object} config - Configuration object
+   * @param {Function} config.verifySignature - Function to verify signature
+   * @param {string} config.JWTSecret - Secret key for JWT
+   * @param {string} [config.challengeExpiresIn="10m"] - Expiration time for challenge JWT
+   * @param {string} [config.JWTExpiresIn="100d"] - Expiration time for authentication JWT
    */
   constructor({
     verifySignature,
@@ -15,6 +16,19 @@ class AddrAuth {
     challengeExpiresIn = "10m",
     JWTExpiresIn = "100d",
   }) {
+    if (typeof verifySignature !== "function") {
+      throw new TypeError("verifySignature must be a function");
+    }
+    if (typeof JWTSecret !== "string") {
+      throw new TypeError("JWTSecret must be a string");
+    }
+    if (typeof challengeExpiresIn !== "string") {
+      throw new TypeError("challengeExpiresIn must be a string");
+    }
+    if (typeof JWTExpiresIn !== "string") {
+      throw new TypeError("JWTExpiresIn must be a string");
+    }
+
     this.verifySignature = verifySignature;
     this.JWTSecret = JWTSecret;
     this.challengeExpiresIn = challengeExpiresIn;
@@ -27,6 +41,10 @@ class AddrAuth {
    * @returns {Object} An object containing the challenge and a JWT
    */
   generateChallenge(address) {
+    if (typeof address !== "string") {
+      throw new TypeError("address must be a string");
+    }
+
     const challenge = this._createChallengeString();
     const JWT = this._signJWT({ address, challenge }, this.challengeExpiresIn);
     return { challenge, JWT };
@@ -38,9 +56,21 @@ class AddrAuth {
    * @param {string} signature - The signature to verify
    * @param {string} publicKey - The public key to use for verification
    * @param {string} address - The address to verify
+   * @param {object} [included={}] - Additional data to include in the JWT
    * @returns {Object} An object containing a new JWT and the address
    */
-  verifyChallenge(token, signature, publicKey, address) {
+  verifyChallenge(token, signature, publicKey, address, included = {}) {
+    if (typeof token !== "string")
+      throw new TypeError("token must be a string");
+    if (typeof signature !== "string")
+      throw new TypeError("signature must be a string");
+    if (typeof publicKey !== "string")
+      throw new TypeError("publicKey must be a string");
+    if (typeof address !== "string")
+      throw new TypeError("address must be a string");
+    if (typeof options !== "object")
+      throw new TypeError("included must be an object");
+
     try {
       const decoded = jwt.verify(token, this.JWTSecret);
       const isValid = this.verifySignature(
@@ -59,6 +89,9 @@ class AddrAuth {
           address: decoded.address,
           challengeThatWasPresented: decoded.challenge,
           signedChallenge: signature,
+          included: {
+            ...included,
+          },
         },
         this.JWTExpiresIn
       );
@@ -75,6 +108,10 @@ class AddrAuth {
    * @returns {Object} The decoded JWT payload if valid
    */
   verifyJWT(token) {
+    if (typeof token !== "string") {
+      throw new TypeError("token must be a string");
+    }
+
     try {
       return jwt.verify(token, this.JWTSecret);
     } catch (error) {
@@ -100,6 +137,11 @@ class AddrAuth {
    * @returns {string} A signed JWT
    */
   _signJWT(payload, expiresIn) {
+    if (typeof payload !== "object")
+      throw new TypeError("payload must be an object");
+    if (typeof expiresIn !== "string")
+      throw new TypeError("expiresIn must be a string");
+
     return jwt.sign(payload, this.JWTSecret, { expiresIn });
   }
 
@@ -110,9 +152,13 @@ class AddrAuth {
    * @throws {Error} A more specific error based on the type of JWT error
    */
   _handleJWTError(error) {
-    if (error instanceof jwt.JsonWebTokenError) {
+    if (!(error instanceof Error)) {
+      throw new TypeError("error must be an instance of Error");
+    }
+
+    if (error.name === "JsonWebTokenError") {
       throw new Error("Invalid token");
-    } else if (error instanceof jwt.TokenExpiredError) {
+    } else if (error.name === "TokenExpiredError") {
       throw new Error("Token expired");
     } else {
       throw error;
