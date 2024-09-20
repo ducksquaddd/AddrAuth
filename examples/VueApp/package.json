@@ -15,7 +15,8 @@
     "express": "^4.21.0",
     "jsonwebtoken": "^9.0.2",
     "vue": "^3.4.29",
-    "vue-router": "^4.4.5"
+    "vue-router": "^4.4.5",
+    "addrauth": "latest"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.5",

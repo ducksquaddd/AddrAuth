@@ -1,5 +1,5 @@
 import express from "express";
-import addrauth from "./dist/index.esm.js";
+import addrauth from "addrauth";
 import cors from "cors";
 import jwt from "jsonwebtoken";
 
