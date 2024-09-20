@@ -37,15 +37,17 @@ class AddrAuth {
    * @param {string} token - The challenge JWT
    * @param {string} signature - The signature to verify
    * @param {string} publicKey - The public key to use for verification
+   * @param {string} address - The address to verify
    * @returns {Object} An object containing a new JWT and the address
    */
-  verifyChallenge(token, signature, publicKey) {
+  verifyChallenge(token, signature, publicKey, address) {
     try {
       const decoded = jwt.verify(token, this.JWTSecret);
       const isValid = this.verifySignature(
         decoded.challenge,
         signature,
-        publicKey
+        publicKey,
+        address
       );
 
       if (!isValid) {

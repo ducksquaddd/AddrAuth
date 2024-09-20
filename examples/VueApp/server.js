@@ -2,31 +2,37 @@ import express from "express";
 import addrauth from "addrauth";
 import cors from "cors";
 import jwt from "jsonwebtoken";
+import Cosmos from "@keplr-wallet/cosmos";
 
-// Initialize AddrAuth with CosmJS signature verification
+// Initialize AddrAuth with a mock signature verification function
+// In a real application, replace this with actual signature verification logic
+
+// Initialize AddrAuth with Cosmos signature verification
 const AddrAuth = new addrauth({
-  verifySignature: async (challenge, signature, publicKey) => {
-    console.log("Verifying signature using CosmJS...");
-    try {
-      // Convert the public key to a Secp256k1Pubkey object
-      const pubkey = new Secp256k1Pubkey(Buffer.from(publicKey, "base64"));
+  verifySignature: async (challenge, signature, publicKey, address) => {
+    const msg = Buffer.from(challenge).toString();
 
-      // Verify the signature
-      const result = verifyADR36Amino(
-        "cosmos", // Replace with your chain's bech32 prefix
-        challenge.address,
-        challenge.challenge,
-        pubkey,
-        Buffer.from(signature.signature, "base64")
-      );
+    const prefix = "cosmos"; // change prefix for other chains...
 
-      return result;
-    } catch (error) {
-      console.error("Signature verification failed:", error);
-      return false;
-    }
+    // Convert the base64 encoded signature to a Uint8Array
+    const signatureBuffer = Buffer.from(signature, "base64");
+    const uint8Signature = new Uint8Array(signatureBuffer);
+
+    // Convert the base64 encoded public key to a Uint8Array
+    const pubKeyValueBuffer = Buffer.from(publicKey, "base64");
+    const pubKeyUint8Array = new Uint8Array(pubKeyValueBuffer);
+
+    const isValid = Cosmos.verifyADR36Amino(
+      prefix,
+      address,
+      msg,
+      pubKeyUint8Array,
+      uint8Signature
+    );
+
+    return isValid;
   },
-  JWTSecret: "your_secret_here", // In a real app, use an environment variable for this
+  JWTSecret: process.env.JWT_SECRET || "your_secret_here", // Use environment variable for JWT secret
 });
 
 const app = express();
@@ -51,16 +57,11 @@ app.post("/addrauth/create", (req, res) => {
 
 // Route to verify a challenge
 app.post("/addrauth/verifyChallenge", (req, res) => {
-  const { token, signature, publicKey } = req.body;
+  const { token, signature, publicKey, address } = req.body;
   try {
-    console.log(token, signature, publicKey);
     // Verify the challenge and get a JWT if successful
-    let { JWT, address } = AddrAuth.verifyChallenge(
-      token,
-      signature,
-      publicKey
-    );
-    res.json({ JWT, address });
+    let data = AddrAuth.verifyChallenge(token, signature, publicKey, address);
+    res.json(data);
   } catch (error) {
     handleError(res, error);
   }
