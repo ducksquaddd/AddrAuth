@@ -7,6 +7,9 @@
     "import": "./dist/index.esm.js",
     "require": "./dist/index.cjs.js"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "node build.js",
     "prepublishOnly": "npm run build",
