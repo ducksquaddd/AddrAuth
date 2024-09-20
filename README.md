@@ -20,12 +20,13 @@ To install AddrAuth, run the following command:
 
 ```bash
 npm install addrauth
+yarn add addrauth
 ```
 
 ### Usage
 
 Docs coming soon...
-See the [examples](https://github.com/crimson-code/AddrAuth/tree/main/examples) folder for more usage examples.
+See the [examples](https://github.com/ducksquaddd/AddrAuth/tree/main/examples/) folder for more usage examples.
 
 ## Contributing
 

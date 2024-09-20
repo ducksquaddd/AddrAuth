@@ -6,8 +6,8 @@ const baseConfig = {
   minify: true,
   sourcemap: true,
   target: ["node14"],
-  external: ["crypto", "buffer", "jsonwebtoken"], // Add 'buffer' and 'jsonwebtoken' here
-  platform: "node", // Set this for both builds
+  external: ["crypto", "buffer", "jsonwebtoken"],
+  platform: "node",
 };
 
 // Build ESM version
